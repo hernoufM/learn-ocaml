@@ -167,9 +167,13 @@ module Exercise: sig
       requirements: string list;
       forward: id list;
       backward: id list;
+      lib_deps : (string * string list) list
     }
 
     val enc: t Json_encoding.encoding
+
+    (** Returns the names of dependent libraries. *)
+    val get_libs : t -> string list
 
   end
 
@@ -302,6 +306,44 @@ module Exercise: sig
 
     (** Dumps the graph as a `dot` representation, into the given formatter. *)
     val dump_dot : Format.formatter -> node list -> unit
+
+  end
+
+  (** Dependency library for exercise *)
+  module Library : sig
+
+    (** Library local path information *)    
+    type path = 
+      { meta : string;
+        name : string;
+        path : string;
+        cmis : string list
+      }
+
+    (** Library content *)    
+    type t =
+      { meta_name : string;
+        cma : string;
+        js : string;
+        cmis : string list
+      }
+
+    (** Returns .cma content *)
+    val get_cma : t -> string
+
+    (** Returns .js content *)
+    val get_js : t -> string
+
+    (** returns .cmi files content *)
+    val get_cmis : t -> string list
+
+    (** Selectively removes compiled data from a library.
+        If the first arg [js] is [true], keep only the javascript.
+        Otherwise, keep only the bytecode. *)
+    val strip : bool -> t -> t
+
+    (** JSON encoding for [t] *)
+    val enc : t Json_encoding.encoding
 
   end
 

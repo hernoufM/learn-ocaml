@@ -76,7 +76,7 @@ let () =
            retrieve (Learnocaml_api.Exercise (Some token, id, true))
          in
          init_tabs ();
-         exercise_fetch >>= fun (ex_meta, exo, _deadline) ->
+         exercise_fetch >>= fun (ex_meta, exo, _libs, _deadline) ->
          (* display exercise questions and prelude *)
          setup_tab_text_prelude_pane Learnocaml_exercise.(decipher File.prelude_ml exo);
          let text_iframe = Dom_html.createIframe Dom_html.document in

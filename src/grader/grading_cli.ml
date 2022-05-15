@@ -43,7 +43,7 @@ let cmis_dir = lazy begin
   Lwt.return cmis_dir
 end
 
-let get_grade ?callback ?timeout ?dirname exo solution =
+let get_grade ?callback ?timeout ?dirname exo libs solution =
   Lazy.force cmis_dir >>= fun cmis_dir ->
   Lwt_io.flush_all () >>= fun () ->
   flush_all ();
@@ -66,7 +66,7 @@ let get_grade ?callback ?timeout ?dirname exo solution =
           with _ -> Toploop_ext.Ok (false, [])
         in
         Grading.get_grade ?callback ?timeout ?dirname ~divert ~load_code
-          exo solution
+          exo libs solution
       in
       output_value oc ret;
       flush_all ();

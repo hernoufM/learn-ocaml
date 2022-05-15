@@ -27,7 +27,8 @@ val get_grade:
   ?dirname:string ->
   divert:(string -> out_channel -> (string -> unit) -> (unit -> unit)) ->
   load_code:(Learnocaml_exercise.compiled_lib -> bool Toploop_ext.toplevel_result) ->
-  Learnocaml_exercise.t -> string -> (Learnocaml_report.t, error) result * string * string * string
+  Learnocaml_exercise.t -> Learnocaml_data.Exercise.Library.t list -> string -> 
+  (Learnocaml_report.t, error) result * string * string * string
 
 (** Returns user-friendly messages when called on [Internal_error] or
     [User_code_error] *)

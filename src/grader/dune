@@ -186,7 +186,8 @@
             embedded_cmis
             ocplib_i18n
             learnocaml_report
-            learnocaml_repository)
+            learnocaml_repository
+            learnocaml_data)
  (modules Introspection
           Embedded_grading_lib
           Grading)
@@ -204,7 +205,7 @@
             ezjsonm
             lwt_utils
             learnocaml_report
-            learnocaml_data)
+            learnocaml_store)
  (modules Grading_cli Grader_cli)
 )
 
@@ -213,7 +214,8 @@
  (wrapped false)
  (modes byte)
  (libraries learnocaml_repository
-            learnocaml_report)
+            learnocaml_report
+            learnocaml_data)
  (modules Grader_jsoo_messages)
 )
 

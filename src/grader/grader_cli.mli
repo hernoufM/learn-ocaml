@@ -33,7 +33,8 @@ val grade:
   ?print_result:bool -> ?dirname:string ->
   dump_outputs:string option -> dump_reports:string option ->
   display_callback:bool ->
-  Learnocaml_data.Exercise.Meta.t -> Learnocaml_exercise.t -> string option ->
+  Learnocaml_data.Exercise.Meta.t -> Learnocaml_exercise.t -> 
+  Learnocaml_data.Exercise.Library.t list -> string option ->
   (unit, int) result Lwt.t
 
 val grade_from_dir:

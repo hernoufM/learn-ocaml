@@ -110,7 +110,7 @@ type _ request =
       'a token option -> (Exercise.Index.t * (Exercise.id * float) list) request
   | Exercise:
       'a token option * string * bool ->
-      (Exercise.Meta.t * Exercise.t * float option) request
+      (Exercise.Meta.t * Exercise.t * Exercise.Library.t list * float option) request
 
   | Lesson_index:
       unit -> (string * string) list request

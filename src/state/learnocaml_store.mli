@@ -99,10 +99,32 @@ module Exercise: sig
     val all: unit -> t list Lwt.t
   end
 
+  module Library: sig
+    include module type of struct include Exercise.Library end
+
+    (** [init (lib,cmis) ] initialise library path data type from its name [name] 
+        (without extension part) and used [cmis] names. Cmis are sorted from the 
+        one that has the least number of dependencies to the one that has the most. *)
+    val init : string * string list -> path Lwt.t
+    
+    (** [store dest lib] stores library with path [path] within server file system whose directory is 
+        specified in [dest]. *)
+    val store : path -> unit Lwt.t
+    
+    (** [get src path] returns library stored within server in directory that is 
+        specified in [src] *)
+    val get : path -> t Lwt.t
+
+    (** [get_local name] gets library with specified name stored localy (by server). *)
+    val get_local : string -> t Lwt.t
+
+  end
+
   include module type of struct include Exercise end
   with module Meta := Exercise.Meta
    and module Status := Exercise.Status
    and module Index := Exercise.Index
+   and module Library := Exercise.Library
 
   val get: id -> t Lwt.t
 

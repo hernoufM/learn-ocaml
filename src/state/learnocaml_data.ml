@@ -433,6 +433,7 @@ module Exercise = struct
       requirements: string list;
       forward: id list;
       backward: id list;
+      lib_deps: (string * string list) list;
     }
 
     let enc =
@@ -460,22 +461,34 @@ module Exercise = struct
              (opt "max_score" int))
         (* deprecated & ignored *)
       in
+      let exercise_enc_v3 =
+        let lib =
+          J.(obj2 
+              (req "lib" string) 
+              (dft "cmis" (list string) []))
+        in 
+        J.(obj1 (dft "lib_deps" (list lib) []))
+      in
       J.conv
         (fun t ->
-           ((t.kind, t.title, t.short_description, t.stars, t.id,
+           (t.kind, t.title, t.short_description, t.stars, t.id,
              t.author, t.focus, t.requirements, t.forward, t.backward),
-            None))
+            (None, t.lib_deps))
         (fun ((kind, title, short_description, stars, id,
                author, focus, requirements, forward, backward),
-              _max_score) ->
+              (_max_score,lib_deps)) ->
           { kind; title; short_description; stars; id;
-            author; focus; requirements; forward; backward;
+            author; focus; requirements; forward; backward; 
+            lib_deps
           })
         (enc_check_version_2
-           (J.merge_objs
+           J.(merge_objs
               exercise_enc_v1
-              exercise_enc_v2))
-
+              @@ merge_objs 
+                 exercise_enc_v2
+                 exercise_enc_v3))
+      
+      let get_libs meta = List.map fst meta.lib_deps
   end
 
   module Status = struct
@@ -986,6 +999,48 @@ module Exercise = struct
          %a\n\
          }"
         (fun fmt -> List.iter (print_node fmt)) nodes
+
+  end
+
+  module Library = struct
+    
+    type path = {
+      meta : string;
+      name : string;
+      path : string;
+      cmis : string list;
+    }
+
+    type t = {
+      meta_name : string;
+      cma : string;
+      js : string;
+      cmis : string list;
+    }
+
+    let get_cma { cma; _ } = cma
+
+    (** Returns .js content *)
+    let get_js { js; _ } = js
+
+    let get_cmis ({ cmis; _ } : t) = cmis
+
+    let strip is_js lib =
+      if is_js then { lib with cma = "" } else { lib with js = "" }
+
+    let bundle_cotent (lib : t) = Marshal.(to_string lib [ No_sharing ])
+    let unbundle_content content : t = Marshal.from_string content 0
+
+    let enc =
+      let open Json_encoding in
+      let b64 =
+        (* TODO: try to use the native implementation on browsers ? *)
+        conv
+          (fun s -> Base64.encode_string s)
+          (fun b -> Result.get_ok (Base64.decode b))
+          string
+      in
+      conv bundle_cotent unbundle_content b64
 
   end
 

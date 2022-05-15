@@ -35,3 +35,5 @@ let focus_path = "focus.json"
 let requirements_path = "requirements.json"
 
 let server_config_path = "server_config.json"
+
+let server_libraries_dir = "libraries"

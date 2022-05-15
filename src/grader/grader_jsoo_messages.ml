@@ -8,6 +8,7 @@
 
 type to_worker =
   { exercise : Learnocaml_exercise.t ;
+    libraries: Learnocaml_data.Exercise.Library.t list ;
     solution : string }
 type from_worker =
   | Callback of string
@@ -17,10 +18,11 @@ open Json_encoding
 
 let to_worker_enc =
   conv
-    (fun { solution ; exercise } -> (solution, exercise))
-    (fun (solution, exercise) -> { solution ; exercise })
-    (obj2
+    (fun { solution ; libraries; exercise } -> (solution, libraries, exercise))
+    (fun (solution, libraries, exercise) -> { solution ; libraries; exercise })
+    (obj3
        (req "solution" string)
+       (dft "libs" (list Learnocaml_data.Exercise.Library.enc) [])
        (req "exercise" Learnocaml_exercise.encoding))
 
 let from_worker_enc =

@@ -8,6 +8,7 @@
 
 type to_worker =
   { exercise : Learnocaml_exercise.t ;
+    libraries : Learnocaml_data.Exercise.Library.t list ;
     solution : string }
 type from_worker =
   | Callback of string

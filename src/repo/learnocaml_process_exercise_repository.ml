@@ -59,7 +59,7 @@ let print_grader_error exercise = function
 
 let spawn_grader
     dump_outputs dump_reports
-    ?print_result ?dirname meta exercise output_json =
+    ?print_result ?dirname meta exercise libs output_json =
   let rec sleep () =
     if !n_processes <= 0 then
       Lwt_main.yield () >>= sleep
@@ -71,7 +71,7 @@ let spawn_grader
   Lwt.catch (fun () ->
       Grader_cli.grade
         ~dump_outputs ~dump_reports ~display_callback:false
-        ?print_result ?dirname meta exercise output_json
+        ?print_result ?dirname meta exercise libs output_json
       >|= fun r ->
       print_grader_error exercise r;
       incr n_processes;
@@ -91,7 +91,9 @@ let main dest_dir =
     | Some exercises_index -> exercises_index
     | None -> !exercises_dir / "index.json" in
   let exercises_dest_dir = dest_dir / Learnocaml_index.exercises_dir in
+  let libraries_dest_dir = dest_dir / Learnocaml_index.server_libraries_dir in
   Lwt_utils.mkdir_p exercises_dest_dir >>= fun () ->
+  Lwt_utils.mkdir_p libraries_dest_dir >>= fun () ->
   Lwt.catch
     (fun () ->
        (if Sys.file_exists exercises_index then
@@ -213,11 +215,11 @@ let main dest_dir =
            if !n_processes = 1 then
              Lwt_list.map_s,
              fun dump_outputs dump_reports ?print_result ?dirname
-               meta exercise json_path ->
+               meta exercise libs json_path ->
                Grader_cli.grade
                  ~dump_outputs ~dump_reports ~display_callback:true
                  ?print_result ?dirname
-                 meta exercise json_path
+                 meta exercise libs json_path
                >|= fun r -> print_grader_error exercise r; r
            else
              Lwt_list.map_p,
@@ -237,12 +239,20 @@ let main dest_dir =
                  Format.printf "%-24s (no changes)@." id ;
                  Lwt.return_true
                end else begin
+                 let open Learnocaml_store.Exercise in
+                 let meta = Index.find index id in
+                 Lwt_list.map_p Library.init meta.Meta.lib_deps >>= fun libs_path ->
                  Learnocaml_precompile_exercise.precompile ~exercise_dir:ex_dir
+                   ~libs:libs_path
                  >>= fun () ->
+                 Lwt_list.map_p
+                   (fun path -> Library.store path >>= fun () -> Library.get path)
+                   libs_path
+                 >>= fun libs ->
                  read_exercise ex_dir
                  >>= fun exercise ->
                  grade dump_outputs dump_reports
-                   ~dirname:ex_dir (Index.find index id) exercise (Some json_path)
+                   ~dirname:ex_dir meta exercise libs (Some json_path)
                  >>= function
                  | Ok () ->
                      Format.printf "%-24s     [OK]@." id ;

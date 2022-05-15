@@ -46,7 +46,7 @@ let read_student_file exercise_dir path =
 
 let grade ?(print_result=false) ?dirname
     ~dump_outputs ~dump_reports ~display_callback
-    meta exercise output_json =
+    meta exercise libs output_json =
   Lwt.catch
     (fun () ->
        let code_to_grade = match !grade_student with
@@ -56,7 +56,7 @@ let grade ?(print_result=false) ?dirname
          if display_callback then Some (Printf.eprintf "[ %s ]%!\r\027[K") else None in
        let timeout = !individual_timeout in
        code_to_grade >>= fun code ->
-       Grading_cli.get_grade ?callback ?timeout ?dirname exercise code
+       Grading_cli.get_grade ?callback ?timeout ?dirname exercise libs code
        >>= fun (result, stdout_contents, stderr_contents, outcomes) ->
        flush stderr;
        match result with
@@ -182,17 +182,19 @@ let grade ?(print_result=false) ?dirname
        Format.eprintf "%a" Location.report_exception exn;
        Error (-1))
 
-let grade_from_dir
-    ?(print_result=false)
+let grade_from_dir ?(print_result=false)
     ~dump_outputs ~dump_reports ~display_callback
     exercise_dir output_json =
+  let open Learnocaml_store.Exercise in 
   let exercise_dir = remove_trailing_slash exercise_dir in
   read_exercise exercise_dir >>= fun exo ->
   Lwt_io.(with_file ~mode:Input (String.concat Filename.dir_sep [exercise_dir; "meta.json"]) read) >>= fun content ->
   let meta = (match content with
               | "" -> `O []
               | s -> Ezjsonm.from_string s)
-             |> Json_encoding.destruct Learnocaml_data.Exercise.Meta.enc in
+             |> Json_encoding.destruct Meta.enc in
+  Lwt_list.map_p Library.init meta.Meta.lib_deps >>= fun libs_path ->
+  Lwt_list.map_p Library.get libs_path >>= fun libs ->
   grade
     ~dump_outputs ~dump_reports ~display_callback
-    ~print_result ~dirname:exercise_dir meta exo output_json
+    ~print_result ~dirname:exercise_dir meta exo libs output_json

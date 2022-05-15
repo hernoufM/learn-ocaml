@@ -95,7 +95,7 @@ let caching: type resp. resp Api.request -> caching = fun resp ->
   if disable_cache then Nocache else
   match resp with
   | Api.Version () -> Shortcache (Some ["version"; "server_id"])
-  | Api.Static ("fonts"::_ | "icons"::_ | "js"::_::_::_ as p) -> Longcache p
+  | Api.Static ("libraries"::_ | "fonts"::_ | "icons"::_ | "js"::_::_::_ as p) -> Longcache p
   | Api.Static ("css"::_ | "js"::_ | _ as p) -> Shortcache (Some p)
 
   | Api.Exercise _ -> Nocache
@@ -166,7 +166,7 @@ let log conn api_req =
       output_char oc '\t';
       output_string oc
         (match api_req.Api.meth with
-         | `GET -> "GET "
+         | `GET -> "GET"
          | `POST _ -> "POST");
       output_char oc '\t';
       output_char oc '/';
@@ -454,9 +454,14 @@ module Request_handler = struct
           | `Open | `Deadline _ as o ->
               Exercise.Meta.get id >>= fun meta ->
               Exercise.get id >>= fun ex ->
+              Exercise.Meta.get_libs meta |>
+              Lwt_list.map_p (fun name -> 
+                Exercise.Library.get_local name >|= fun lib ->
+                Exercise.Library.strip js lib
+                ) >>= fun libs ->
               let ex = Learnocaml_exercise.strip js ex in
               respond_json cache
-                (meta, ex,
+                (meta, ex, libs,
                  match o with `Deadline t -> Some (max t 0.) | `Open -> None)
           | `Closed ->
              lwt_fail (`Forbidden, "Exercise closed"))

@@ -759,12 +759,12 @@ module Grade = struct
     >>= fun solution ->
     status_line "Fetching exercise data from server.";
     fetch_exercise server token exercise_id
-    >>= fun (_meta, exercise, deadline) ->
+    >>= fun (_meta, exercise, libs, deadline) ->
     if deadline = Some 0. then
       Printf.eprintf
         "[ERROR] The deadline is expired, you won't be able to submit.\n";
     Grading_cli.get_grade ~callback:status_line ?timeout:None
-      exercise solution
+      exercise libs solution
     >>= fun (report, ex_stdout, ex_stderr, ex_outcome) ->
     flush stderr;
     let pr col title s =
@@ -1088,7 +1088,7 @@ module Template = struct
        get_config_o ~allow_static:true o
        >>= fun { server; token } ->
        fetch_exercise server token exercise_id
-       >>= fun (_meta, exercise, _deadline) ->
+       >>= fun (_meta, exercise, _libs, _deadline) ->
        write_exercise_file
          exercise_id
          Learnocaml_exercise.(access File.template exercise)

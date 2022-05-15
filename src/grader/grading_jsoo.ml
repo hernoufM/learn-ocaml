@@ -17,7 +17,7 @@ let get_grade
     ?(worker_js_file = "/js/learnocaml-grader-worker.js")
     ?(callback = (fun _ -> ()))
     ?(timeout = infinity)
-    exercise =
+    exercise libraries =
   let t, u = Lwt.task () in
   let worker = Worker.create worker_js_file in
   Lwt.on_cancel t (fun () ->
@@ -47,7 +47,7 @@ let get_grade
   worker##.onerror := Dom.handler onerror ;
   Lwt.return @@
   fun solution ->
-    let req = { exercise ; solution } in
+    let req = { exercise; libraries ; solution } in
     let json = Json_repr_browser.Json_encoding.construct to_worker_enc req in
     worker##(postMessage json) ;
     let timer =

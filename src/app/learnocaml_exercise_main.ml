@@ -38,9 +38,9 @@ let check_if_need_refresh has_server =
 
 let get_grade =
   let get_worker = get_worker_code "learnocaml-grader-worker.js" in
-  fun ?callback ?timeout exercise ->
+  fun ?callback ?timeout exercise libs ->
     get_worker () >>= fun worker_js_file ->
-    Grading_jsoo.get_grade ~worker_js_file ?callback ?timeout exercise
+    Grading_jsoo.get_grade ~worker_js_file ?callback ?timeout exercise libs
 
 let display_report exo report =
   let score, _failed = Report.result report in
@@ -89,8 +89,8 @@ let is_readonly = ref false
 
 let make_readonly () =
   is_readonly := true;
-  alert ~title:[%i"TIME'S UP"]
-    [%i"The deadline for this exercise has expired. Any changes you make \
+  alert ~title:[%i "TIME'S UP"]
+    [%i "The deadline for this exercise has expired. Any changes you make \
         from now on will remain local only."]
 
 let () =
@@ -122,7 +122,18 @@ let () =
     retrieve (Learnocaml_api.Exercise (token, id, true))
   in
   let after_init top =
-    exercise_fetch >>= fun (_meta, exo, _deadline) ->
+    exercise_fetch >>= fun (_meta, exo, libs, _deadline) ->
+   Lwt_list.map_s
+      (fun lib ->
+        let open Learnocaml_data.Exercise.Library in
+        Lwt_list.map_s
+          (Learnocaml_toplevel.load_cmi_from_string top)
+          (get_cmis lib)
+        >>= fun _ ->
+        Learnocaml_toplevel.load_js ~print_outcome:false top (get_js lib))
+      libs
+    >>= fun r ->
+    if List.exists not r then Lwt.fail_with [%i "error in dependencies"] else
     let exercise_js = Learnocaml_exercise.(decipher File.exercise_js exo) in
     Learnocaml_toplevel.load_cmi_from_string top
       Learnocaml_exercise.(decipher File.prelude_cmi exo) >>= fun _ ->
@@ -131,16 +142,16 @@ let () =
     Learnocaml_toplevel.load_js ~print_outcome:false top
       exercise_js
     >>= fun r ->
-    if not r then Lwt.fail_with  [%i"error in prelude"] else
+    if not r then Lwt.fail_with [%i "error in prelude"] else
     Learnocaml_toplevel.load top "include Prelude ;;"
-      ~message: [%i"loading the prelude..."] >>= fun r ->
-    if not r then Lwt.fail_with [%i"error in prelude"] else
+      ~message: [%i "loading the prelude..."] >>= fun r ->
+    if not r then Lwt.fail_with [%i "error in prelude"] else
     Learnocaml_toplevel.load ~print_outcome:false top "module Prelude = struct end;;" >>= fun r ->
-    if not r then Lwt.fail_with [%i"error in prelude"] else
+    if not r then Lwt.fail_with [%i "error in prelude"] else
     Learnocaml_toplevel.load ~print_outcome:false top "include Prepare ;;" >>= fun r ->
-    if not r then Lwt.fail_with [%i"error in prelude"] else
+    if not r then Lwt.fail_with [%i "error in prelude"] else
     Learnocaml_toplevel.load ~print_outcome:false top "module Prepare = struct end;;" >>= fun r ->
-    if not r then Lwt.fail_with [%i"error in prelude"] else
+    if not r then Lwt.fail_with [%i "error in prelude"] else
     (* TODO: maybe remove Prelude, Prepare modules from the env ? *)
     Learnocaml_toplevel.set_checking_environment top >>= fun () ->
     Lwt.return () in
@@ -152,7 +163,7 @@ let () =
   init_tabs () ;
   set_nickname_div ();
   toplevel_launch >>= fun top ->
-  exercise_fetch >>= fun (ex_meta, exo, deadline) ->
+  exercise_fetch >>= fun (ex_meta, exo, libs, deadline) ->
   (match deadline with
    | None -> ()
    | Some 0. -> make_readonly ()
@@ -218,7 +229,7 @@ let () =
   let callback text =
     Manip.appendChild messages Tyxml_js.Html5.(li [ txt text ]) in
   let worker =
-    ref (get_grade ~callback exo)
+    ref (get_grade ~callback exo libs)
   in
   begin toolbar_button
       ~icon: "typecheck" [%i"Compile"] @@ fun () ->
@@ -256,7 +267,7 @@ let () =
                w solution >>= fun (report, _, _, _) ->
                Lwt.return report)
             (fun () ->
-               worker := get_grade ~callback exo;
+               worker := get_grade ~callback exo libs;
                Lwt.return_unit)
         in
         let abortion =

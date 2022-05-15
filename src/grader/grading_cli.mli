@@ -13,5 +13,7 @@ val get_grade:
   ?callback:(string -> unit) ->
   ?timeout:int ->
   ?dirname:string ->
-  Learnocaml_exercise.t -> string ->
+  Learnocaml_exercise.t ->
+  Learnocaml_data.Exercise.Library.t list ->
+  string ->
   ((Learnocaml_report.t, Grading.error) result * string * string * string) Lwt.t

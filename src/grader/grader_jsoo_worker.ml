@@ -8,7 +8,7 @@
 
 open Js_of_ocaml
 
-let get_grade ?callback exo solution =
+let get_grade ?callback exo libs solution =
   (* the new toplevel uses directory listings to discover .cmis, so the old
      approach of using [Sys_js.mount] for subpaths of individual files no longer
      works: we need to mount everything explicitely. *)
@@ -42,21 +42,21 @@ let get_grade ?callback exo solution =
       prerr_endline (Printexc.to_string exn);
       Toploop_ext.Ok (false, [])
   in
-  Grading.get_grade ?callback ~divert ~load_code exo solution
+  Grading.get_grade ?callback ~divert ~load_code exo libs solution
 
 open Grader_jsoo_messages
 
 let () =
   (match Js_utils.get_lang() with Some l -> Ocplib_i18n.set_lang l | None -> ());
   Worker.set_onmessage @@ fun (json : Json_repr_browser.Repr.value) ->
-  let { exercise ; solution } =
+  let { exercise ; libraries; solution } =
     Json_repr_browser.Json_encoding.destruct to_worker_enc json in
   let callback msg =
     let msg = Callback msg in
     let json = Json_repr_browser.Json_encoding.construct from_worker_enc msg in
     Worker.post_message json in
   let ans =
-    match get_grade ~callback exercise solution with
+    match get_grade ~callback exercise libraries solution with
     | Ok report, stdout, stderr, outcomes ->
         Answer (report, stdout, stderr, outcomes)
     | Error err, stdout, stderr, outcomes ->

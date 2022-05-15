@@ -16,13 +16,13 @@ exception Grading_error of error
 
 let string_of_err = function
   | Internal_error (msg, error) ->
-      Format.asprintf [%if"Exercise definition error %s:\n%a\n%!"]
+      Format.asprintf [%if "Exercise definition error %s:\n%a\n%!"]
         msg Location.print_report (Toploop_results.to_error error)
   | User_code_error error ->
-      Format.asprintf [%if"Error in user code:\n\n%a\n%!"]
+      Format.asprintf [%if "Error in user code:\n\n%a\n%!"]
         Location.print_report (Toploop_results.to_error error)
   | Invalid_grader ->
-      [%i"The grader is invalid"]
+      [%i "The grader is invalid"]
 
 let () =
   Location.register_error_of_exn (function
@@ -37,10 +37,8 @@ let user_code_error err =
 
 let get_grade
     ?callback ?timeout ?(dirname="") ~divert ~load_code
-    (exo : Learnocaml_exercise.t) code =
-
+    (exo : Learnocaml_exercise.t) libs code =
   let file f = String.concat Filename.dir_sep [dirname; f] in
-
   let print_outcome = true in
   let outcomes_buffer = Buffer.create 503 in
   let ppf_answer =
@@ -111,38 +109,48 @@ let get_grade
         Toploop_ext.inject_global "Learnocaml_internal"
           (Obj.repr (module Learnocaml_internal: Learnocaml_internal_intf.INTERNAL))
       in
+      
+      set_progress [%i "Loading exercise dependencies."];
 
-      set_progress [%i"Preparing the test environment."] ;
+      List.iter
+        (fun lib ->
+          let open Learnocaml_data.Exercise.Library in
+          List.iter Toploop_ext.load_cmi_from_string (get_cmis lib);
+          handle_error (internal_error [%i "while preparing the tests"]) @@ 
+          load_code Learnocaml_exercise.{ cma = get_cma lib; js = get_js lib })
+        libs;
+     
+      set_progress [%i "Preparing the test environment."] ;
       Toploop_ext.load_cmi_from_string (Learnocaml_exercise.(decipher File.prelude_cmi exo)) ;
       Toploop_ext.load_cmi_from_string (Learnocaml_exercise.(decipher File.prepare_cmi exo)) ;
 
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       load_code Learnocaml_exercise.{
           cma = decipher File.exercise_cma exo ;
           js = decipher File.exercise_js exo ;
         };
 
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       Toploop_ext.use_string ~print_outcome ~ppf_answer
         {|include Prelude|};
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       Toploop_ext.use_string ~print_outcome:false ~ppf_answer
         {|module Prelude = struct end|};
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       Toploop_ext.use_string ~print_outcome:false ~ppf_answer
         {|include Prepare|};
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       Toploop_ext.use_string ~print_outcome:false ~ppf_answer
         {|module Prepare = struct end|};
 
-      set_progress [%i"Loading your code."] ;
+      set_progress [%i "Loading your code."] ;
       handle_error user_code_error @@
       Toploop_ext.use_mod_string ~print_outcome ~ppf_answer ~modname:"Code"
         ~filename:(file "solution.ml") code ;
 
       Toploop_ext.load_cmi_from_string (Learnocaml_exercise.(decipher File.solution_cmi exo)) ;
 
-      set_progress [%i"Preparing to launch the tests."] ;
+      set_progress [%i "Preparing to launch the tests."] ;
       let module Intro_inner =
         (val Introspection.allow_introspection ~divert)
       in
@@ -165,22 +173,22 @@ let get_grade
       Toploop_ext.load_cmi_from_string
         OCamlRes.(Res.find (Path.of_string "test_lib.cmi")
                     Embedded_grading_lib.root) ;
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       load_code
         { Learnocaml_exercise.
           cma = OCamlRes.(Res.find (Path.of_string "testing_dyn.cma")
                             Embedded_grading_lib.root) ;
           js = OCamlRes.(Res.find (Path.of_string "testing_dyn.js")
                            Embedded_grading_lib.root) };
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       Toploop_ext.use_string ~print_outcome:false ~ppf_answer {|open! Test_lib.Open_me|};
       (* Registering the samplers that may be defined in [test.ml] requires
          having their types and the definitions of the types they sample, hence
          the need for an opened [test_cmi]*)
       Toploop_ext.load_cmi_from_string (Learnocaml_exercise.(decipher File.test_cmi exo)) ;
-      handle_error (internal_error [%i"while preparing the tests"]) @@
+      handle_error (internal_error [%i "while preparing the tests"]) @@
       Toploop_ext.use_string ~print_outcome:false ~ppf_answer {|open! Test|};
-      handle_error (internal_error [%i"while testing your solution"]) @@
+      handle_error (internal_error [%i "while testing your solution"]) @@
       load_code Learnocaml_exercise.{
           cma = decipher File.test_cma exo ;
           js = decipher File.test_js exo ;

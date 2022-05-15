@@ -485,7 +485,7 @@ let () =
     | Some ex_id ->
         Lwt.async @@ fun () ->
         retrieve (Learnocaml_api.Exercise (Some teacher_token, ex_id, true))
-        >>= fun (meta, exo, _) ->
+        >>= fun (meta, exo, _, _) ->
         clear_tabs ();
         let ans = SMap.find_opt ex_id save.Save.all_exercise_states in
         update_tabs meta exo ans;

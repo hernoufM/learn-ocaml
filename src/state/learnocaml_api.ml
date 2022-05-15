@@ -121,7 +121,7 @@ type _ request =
       'a token option -> (Exercise.Index.t * (Exercise.id * float) list) request
   | Exercise:
       'a token option * string * bool ->
-      (Exercise.Meta.t * Exercise.t * float option) request
+      (Exercise.Meta.t * Exercise.t * Exercise.Library.t list * float option) request
 
   | Lesson_index:
       unit -> (string * string) list request
@@ -245,7 +245,7 @@ module Conversions (Json: JSON_CODEC) = struct
       | Exercise_index _ ->
          json (J.tup2 Exercise.Index.enc (J.assoc J.float))
       | Exercise _ ->
-          json (J.tup3 Exercise.Meta.enc Exercise.enc (J.option J.float))
+          json (J.tup4 Exercise.Meta.enc Exercise.enc (J.list Exercise.Library.enc) (J.option J.float))
       | Lesson_index _ ->
           json Lesson.Index.enc
       | Lesson _ ->

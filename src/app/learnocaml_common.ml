@@ -68,7 +68,7 @@ let fake_upload () =
   ignore (Js.Unsafe.meth_call input_files_load "click" [||]) ;
   result_t
 
-let fatal ?(title=[%i"INTERNAL ERROR"]) message =
+let fatal ?(title=[%i "INTERNAL ERROR"]) message =
   let titletext = title in
   let id = "ocp-fatal-layer" in
   let div = match Manip.by_id id with
@@ -817,17 +817,17 @@ let toplevel_launch ?display_welcome ?after_init ?(on_disable=fun () -> ()) ?(on
 
 let init_toplevel_pane toplevel_launch top toplevel_buttons_group toplevel_button =
   begin toplevel_button
-      ~icon: "cleanup" [%i"Clear"] @@ fun () ->
+      ~icon: "cleanup" [%i "Clear"] @@ fun () ->
     Learnocaml_toplevel.clear top ;
     Lwt.return ()
   end ;
   begin toplevel_button
-      ~icon: "reload" [%i"Reset"] @@ fun () ->
+      ~icon: "reload" [%i "Reset"] @@ fun () ->
     toplevel_launch >>= fun top ->
     disabling_button_group toplevel_buttons_group (fun () -> Learnocaml_toplevel.reset top)
   end ;
   begin toplevel_button
-      ~icon: "run" [%i"Eval phrase"] @@ fun () ->
+      ~icon: "run" [%i "Eval phrase"] @@ fun () ->
     Learnocaml_toplevel.execute top ;
     Lwt.return ()
   end
@@ -842,24 +842,24 @@ let set_inner_list lst =
 
 let set_string_translations_exercises () =
   let translations = [
-    "txt_preparing", [%i"Preparing the environment"];
-    "learnocaml-exo-button-editor", [%i"Editor"];
-    "learnocaml-exo-button-toplevel", [%i"Toplevel"];
-    "learnocaml-exo-button-report", [%i"Report"];
-    "learnocaml-exo-button-text", [%i"Exercise"];
-    "learnocaml-exo-button-meta", [%i"Details"];
-    "learnocaml-exo-editor-pane", [%i"Editor"];
-    "txt_grade_report", [%i"Click the Grade button to get your report"];
+    "txt_preparing", [%i "Preparing the environment"];
+    "learnocaml-exo-button-editor", [%i "Editor"];
+    "learnocaml-exo-button-toplevel", [%i "Toplevel"];
+    "learnocaml-exo-button-report", [%i "Report"];
+    "learnocaml-exo-button-text", [%i "Exercise"];
+    "learnocaml-exo-button-meta", [%i "Details"];
+    "learnocaml-exo-editor-pane", [%i "Editor"];
+    "txt_grade_report", [%i "Click the Grade button to get your report"];
   ] in set_inner_list translations
 
 let set_string_translations_view () =
   let translations = [
-    "txt_loading", [%i"Loading student data"];
-    "learnocaml-exo-button-stats", [%i"Stats"];
-    "learnocaml-exo-button-list", [%i"Exercises"];
-    "learnocaml-exo-button-report", [%i"Report"];
-    "learnocaml-exo-button-text", [%i"Subject"];
-    "learnocaml-exo-button-editor", [%i"Answer"];
+    "txt_loading", [%i "Loading student data"];
+    "learnocaml-exo-button-stats", [%i "Stats"];
+    "learnocaml-exo-button-list", [%i "Exercises"];
+    "learnocaml-exo-button-report", [%i "Report"];
+    "learnocaml-exo-button-text", [%i "Subject"];
+    "learnocaml-exo-button-editor", [%i "Answer"];
   ] in set_inner_list translations
 
 let local_save ace id =

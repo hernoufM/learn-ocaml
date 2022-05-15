@@ -736,11 +736,15 @@ msgstr ""
 msgid "The grader is invalid"
 msgstr "Le moteur de notation est invalide"
 
+#: File "src/grader/grading.ml", line 113, characters 22-52
+msgid "Loading exercise dependencies."
+msgstr "Chargement des dépendances d'exercice."
+
 #: File "src/grader/grading.ml", line 115, characters 22-55
 msgid "Preparing the test environment."
 msgstr "Préparation de l'environnement de test."
 
-#: File "src/grader/grading.ml", line 119, characters 38-65 125, 128, 131, 134,
+#: File "src/grader/grading.ml", line 119, characters 38-65 120, 125, 128, 131, 134,
 #: 168, 175, 181,
 msgid "while preparing the tests"
 msgstr "lors de la préparation des tests"
@@ -791,6 +795,10 @@ msgid ""
 msgstr ""
 "La date limite de rendu de cet exercice est passée. Vos changements ne "
 "seront plus sauvegardés sur le serveur."
+
+#: File "src/app/learnocaml_exercise_main.ml", line 134, characters 48-71
+msgid "error in dependencies"
+msgstr "erreur dans les dependances"
 
 #: File "src/app/learnocaml_exercise_main.ml", line 134, characters 36-54 137,
 #: 35-53 139, 141, 143, "src/app/learnocaml_playground_main.ml", 50, 31-49
