@@ -424,6 +424,9 @@
 
     (** {2:sampler_sec Samplers} *)
 
+    (** [sample_unit ()] returns unit value. *)
+    val sample_unit : unit sampler
+
     (** [sample_int ()] returns a random integer between -5 and 5. *)
     val sample_int : int sampler
 
@@ -498,6 +501,7 @@
   (** For internal use, needed for the default samplers registration *)
   module Sampler_reg : sig
     type 'a sampler = 'a Sampler.sampler
+    val sample_unit : unit sampler
     val sample_int : int sampler
     val sample_float : float sampler
     val sample_string : string sampler

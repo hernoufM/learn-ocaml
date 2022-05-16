@@ -1271,6 +1271,8 @@ module Intro = Pre_test.Introspection
   module Sampler = struct
     type 'a sampler = unit -> 'a
 
+    let sample_unit () = ()
+
     let sample_bool () = Random.bool ()
 
     let sample_int () = Random.int 10 - 5
@@ -1361,6 +1363,7 @@ module Intro = Pre_test.Introspection
   end
   module Sampler_reg = struct
     include Sampler
+    let () = Intro.register_sampler "Test_lib.Sampler_reg" "sample_unit" "unit" sample_unit
     let () = Intro.register_sampler "Test_lib.Sampler_reg" "sample_bool" "bool" sample_bool
     let () = Intro.register_sampler "Test_lib.Sampler_reg" "sample_int" "int" sample_int
     let () = Intro.register_sampler "Test_lib.Sampler_reg" "sample_float" "float" sample_float

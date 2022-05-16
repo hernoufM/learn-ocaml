@@ -66,7 +66,7 @@ let read_lines fopen =
 let precompile ~exercise_dir ~libs =
   let open Learnocaml_data.Exercise.Library in
   let dir = exercise_dir in
-  let exercise_flags = "-c" :: 
+  let libs_flags = 
     (List.map (fun { path; name; _ } -> [ "-I"; path; name ^ ".cma" ]) libs
       |> List.flatten)
   in
@@ -84,13 +84,13 @@ let precompile ~exercise_dir ~libs =
         List.append libflags flags)
       grader_libs []
   in
-  ocamlc ~dir exercise_flags ~opn:["Learnocaml_callback"]
+  ocamlc ~dir ("-c" :: libs_flags) ~opn:["Learnocaml_callback"]
     ~source:["prelude.ml"] ~target:"prelude.cmo"
   >>= fun () ->
-  ocamlc ~dir exercise_flags ~opn:["Learnocaml_callback"; "Prelude"] ~ppx:["exercise-ppx"]
+  ocamlc ~dir ("-c" :: libs_flags) ~opn:["Learnocaml_callback"; "Prelude"] ~ppx:["exercise-ppx"]
     ~source:["prepare.ml"] ~target:"prepare.cmo"
   >>= fun () ->
-  ocamlc ~dir exercise_flags ~opn:["Learnocaml_callback"; "Prelude"; "Prepare"] ~ppx:["exercise-ppx"]
+  ocamlc ~dir ("-c" :: libs_flags) ~opn:["Learnocaml_callback"; "Prelude"; "Prepare"] ~ppx:["exercise-ppx"]
     ~source:["solution.ml"] ~target:"solution.cmo"
   >>= fun () ->
   Lwt.join [
@@ -99,7 +99,7 @@ let precompile ~exercise_dir ~libs =
        ~target:"exercise.cma"
      >>= fun () ->
      jsoo ~dir [] ~source:"exercise.cma" ~target:"exercise.js");
-    (ocamlc ~dir (["-c"; "-I"; "+compiler-libs"] @ grader_flags)
+    (ocamlc ~dir (["-c"; "-I"; "+compiler-libs"] @ libs_flags @ grader_flags)
        ~ppx:["grader-ppx"]
        ~opn:["Learnocaml_callback"; "Prelude"; "Prepare"; "Test_lib.Open_me"]
        ~source:["test.ml"]

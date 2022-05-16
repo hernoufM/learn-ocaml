@@ -90,6 +90,7 @@ Json description with the following format (in version "1"):
 ```
 
 Json description in version "2" contains more metadata:
+
 ```
 {
   "learnocaml_version" : "2",
@@ -112,6 +113,21 @@ Json description in version "2" contains more metadata:
   "max_score" : [ 0 .. n ],
 }
 ```
+
+### External libraries
+
+Additionally, you could define external libraries to your exercise in meta.json that becomes available in the set of .mls and at the toplevel of exercise. To do that mention library name and imported interfaces in additional field in meta.json.
+
+```
+…
+"max_score" : [ 0 .. n ],
+“lib_deps”: [
+    { “lib” : ”lib1”, “cmis” : [“cmi1”, …] },
+    …
+]
+```
+
+A .cmi should be mentioned without extension part. Listing explicitly cmis for a library allows you to restrict students to use only those interfaces that are mentioned, at the same time leaving the opportunity for teachers to use all possible modules when compiling exercises (i.e. in prelude, prepare, solution and test files). Order between cmis is assumed, but not for libraries. So if you want to load several libraries that could depend on some of them, make sure that you lists them in the correct order (library with no dependencies should be listed first). Libraries should be able to be compiled to JavaScript.
 
 ### descr.html
 
